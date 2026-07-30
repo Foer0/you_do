@@ -16,5 +16,7 @@ class Settings(BaseSettings):
     db_name: str = Field(default=...)
     database_url: str = Field(default=...)
 
+    secret_key: str = Field(default=...)
+
 
 settings = Settings()
