@@ -7,6 +7,7 @@ from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
+from app.core.local_date import get_local_date
 from app.models.user import User
 from app.schemas.task import TaskCreate, TaskResponse, TaskUpdate
 from app.services import task_service
@@ -16,10 +17,12 @@ router = APIRouter()
 
 @router.get("/tasks", response_model=Sequence[TaskResponse])
 async def display_tasks(
-    for_date: Annotated[date, Query(default_factory=date.today)],
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    for_date: Annotated[date | None, Query()] = None,
 ):
+    if for_date is None:
+        for_date = get_local_date(user.timezone)
     tasks_out = await task_service.get_tasks(for_date, db, user.id)
     return tasks_out
 
@@ -31,6 +34,8 @@ async def add_task(
     user: Annotated[User, Depends(get_current_user)],
 ):
     body = task_in.model_dump()
+    if "created_at" in body and body["created_at"] is None:
+        body["created_at"] = get_local_date(user.timezone)
     task_out = await task_service.add_new_task(body, db, user.id)
     return task_out
 

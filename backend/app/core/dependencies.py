@@ -1,3 +1,4 @@
+from datetime import date
 from typing import Annotated
 
 import jwt
@@ -7,11 +8,12 @@ from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.local_date import get_local_date
 from app.core.security import decode_access_token
 from app.db.session import SessionLocal
 from app.models.user import User
 
-oauth2_scheme = OAuth2PasswordBearer("/login")
+oauth2_scheme = OAuth2PasswordBearer("auth/login")
 
 
 async def get_db():
@@ -34,3 +36,7 @@ async def get_current_user(
     except NoResultFound:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "User not found")
     return user
+
+
+async def get_user_local_date(user: Annotated[User, Depends(get_current_user)]) -> date:
+    return get_local_date(user.timezone)
