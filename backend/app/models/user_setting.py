@@ -22,7 +22,7 @@ class UserSetting(Base):
     long_break_secs: Mapped[int | None] = mapped_column(Integer)
     birth_date: Mapped[date | None] = mapped_column(Date)
     sound_effect: Mapped[str | None] = mapped_column(Text)
-    sound_duration_secs: Mapped[int | None] = mapped_column(Integer, default="3")
+    sound_duration_secs: Mapped[int | None] = mapped_column(Integer, server_default="3")
     user_id: Mapped[int] = mapped_column(
         BigInteger, ForeignKey("users.id", ondelete="CASCADE"), unique=True
     )
