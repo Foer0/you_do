@@ -1,6 +1,6 @@
 from datetime import date
 
-from sqlalchemy import literal_column, select
+from sqlalchemy import func, literal_column, select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -31,7 +31,9 @@ async def upsert_new_data(
 
 async def get_sessions_data(date_, session: AsyncSession, user_id: int) -> dict:
     stmt = (
-        select(UD.total_duration_secs, UD.total_duration_secs / US.session_secs)
+        select(
+            UD.total_duration_secs, func.floor(UD.total_duration_secs / US.session_secs)
+        )
         .join(US, UD.user_id == US.user_id)
         .where(UD.for_date == date_, UD.user_id == user_id)
     )
