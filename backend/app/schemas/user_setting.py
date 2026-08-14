@@ -30,6 +30,7 @@ class SettingResponse(BaseModel):
     session_secs: int
     break_secs: int
     long_break_secs: int | None
+    long_break_trigger_session: int | None
     sound_effect: SoundEffect | None
     sound_duration_secs: int | None
 
@@ -46,6 +47,7 @@ class SettingUpdate(BaseModel):
     session_secs: int | None = Field(gt=0, default=None)
     break_secs: int | None = Field(gt=0, default=None)
     long_break_secs: int | None = None
+    long_break_trigger_session: int | None = Field(gt=0, default=None)
     sound_effect: SoundEffect | None = None
     sound_duration_secs: int | None = None
 
