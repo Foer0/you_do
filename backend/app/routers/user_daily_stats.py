@@ -1,15 +1,17 @@
 from datetime import date
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response, status
+from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, get_user_local_date
+from app.models.task import Task
 from app.models.user import User
 from app.schemas.user_daily_stat import (
     DailyStatResponceAfterUpsert,
     DailyStatResponse,
     DailyStatUpsert,
+    StatisticResponse,
 )
 from app.services import user_daily_stat_service
 
@@ -41,3 +43,27 @@ async def display_sessions_data(
 ):
     data_out = await user_daily_stat_service.get_sessions_data(curr_date, db, user.id)
     return data_out
+
+
+@router.get("/statistics", response_model=list[StatisticResponse])
+async def display_stats(
+    granularity: Annotated[str, Query()],
+    date_: Annotated[date, Query()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    if granularity == "day":
+        stats = await user_daily_stat_service.get_daily_monthly_stats(
+            granularity, date_, db, user.id
+        )
+        return stats
+    if granularity == "week":
+        stats = await user_daily_stat_service.get_quarterly_stats(
+            granularity, date_, db, user.id
+        )
+        return stats
+    if granularity == "month":
+        stats = await user_daily_stat_service.get_monthly_yearly_stats(
+            granularity, date_, db, user.id
+        )
+        return stats

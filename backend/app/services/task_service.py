@@ -1,6 +1,7 @@
 from collections.abc import Sequence
 from datetime import date
 
+from dateutil.relativedelta import relativedelta
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,3 +46,17 @@ async def update_task(
     task = result.scalars().one()
     await session.commit()
     return task
+
+
+async def get_daily_monthly_tasks(
+    date_: date, session: AsyncSession, user_id: int
+) -> list[Task]:
+    start = date_.replace(day=1)
+    end = start + relativedelta(months=1)
+
+    stmt = select(Task).where(
+        Task.user_id == user_id, Task.created_at >= start, Task.created_at < end
+    )
+
+    result = (await session.execute(stmt)).scalars()
+    return [obj for obj in result]

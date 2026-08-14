@@ -17,3 +17,8 @@ class DailyStatResponceAfterUpsert(BaseModel):
 
     total_duration_secs: int
     for_date: date
+
+
+class StatisticResponse(BaseModel):
+    period: date
+    time_secs: int

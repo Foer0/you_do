@@ -69,3 +69,13 @@ async def change_task(
     except NoResultFound:
         raise HTTPException(status.HTTP_404_NOT_FOUND, "Task not Found")
     return updated_task
+
+
+@router.get("/statistics/tasks", response_model=list[TaskResponse])
+async def display_stats(
+    date_: Annotated[date, Query()],
+    db: Annotated[AsyncSession, Depends(get_db)],
+    user: Annotated[User, Depends(get_current_user)],
+):
+    tasks = await task_service.get_daily_monthly_tasks(date_, db, user.id)
+    return tasks
