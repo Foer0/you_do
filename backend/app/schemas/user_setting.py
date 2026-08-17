@@ -12,6 +12,7 @@ from pydantic import (
 )
 
 from app.constants import SOUNDS
+from app.schemas.user import Token
 
 
 class SoundEffect(str, Enum):
@@ -62,3 +63,8 @@ class PasswordUpdate(BaseModel):
         if self.new_password != self.confirm_password:
             raise ValueError("Passwords do not match")
         return self
+
+
+class PasswordResponse(BaseModel):
+    msg: str
+    token: Token

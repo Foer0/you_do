@@ -1,8 +1,14 @@
 from argon2.exceptions import VerifyMismatchError
+from jwt import InvalidTokenError
 from sqlalchemy.exc import IntegrityError, NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.security import create_access_token, hash_passwd, verify_passwd
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    hash_passwd,
+    verify_passwd,
+)
 from app.models.user import User
 from app.services import user_service
 
@@ -24,7 +30,7 @@ async def register_new_user(data: dict, session: AsyncSession) -> User:
         raise EmailAlreadyExistsError("Email already registered")
 
 
-async def authenticate_user(data: dict, session: AsyncSession) -> str:
+async def authenticate_user(data: dict, session: AsyncSession) -> tuple:
     try:
         user: User = await user_service.get_user_by_email(data, session)
     except NoResultFound:
@@ -38,5 +44,16 @@ async def authenticate_user(data: dict, session: AsyncSession) -> str:
     except VerifyMismatchError:
         raise InvalidCredentialsError("Incorrect email or password")
 
-    token = create_access_token(user.id)
-    return token
+    access = create_access_token(user.id)
+    refresh = create_refresh_token(user.id, user.version)
+    return access, refresh
+
+
+async def check_refresh_token_payload(payload: dict, session: AsyncSession) -> dict:
+    is_valid_version = await user_service.is_user_token_version_valid(
+        int(payload["sub"]), int(payload["version"]), session
+    )
+
+    if not is_valid_version:
+        raise InvalidTokenError("Incorret refresh token's version")
+    return payload

@@ -1,7 +1,16 @@
 from datetime import date
 from typing import TYPE_CHECKING
 
-from sqlalchemy import BigInteger, Boolean, CheckConstraint, Date, String, Text, func
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    CheckConstraint,
+    Date,
+    Integer,
+    String,
+    Text,
+    func,
+)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -29,6 +38,7 @@ class User(Base):
     created_at: Mapped[date] = mapped_column(Date, server_default=func.current_date())
     is_another_auth: Mapped[bool] = mapped_column(Boolean, default=False)
     timezone: Mapped[str] = mapped_column(Text, server_default="UTC")
+    version: Mapped[int] = mapped_column(Integer, server_default="1")
 
     tasks: Mapped[list["Task"]] = relationship(back_populates="user", lazy="raise")
     user_stats: Mapped[list["UserDailyStat"]] = relationship(

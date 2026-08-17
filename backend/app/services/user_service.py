@@ -1,3 +1,4 @@
+from argon2.exceptions import VerifyMismatchError
 from sqlalchemy import insert, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -53,18 +54,28 @@ async def change_settings(
     return result.scalars().one()
 
 
-async def change_password(data: dict, user: User, session: AsyncSession):
-    # todo: реализация будет после наличия реализации refresh-токена
-    """
-    получить прошлый пароль (хеш) из БД
-    сравнить присланный прошлый пароль с хешом
-    отправить новый пароль делать хеш
-    запись в БД
-    """
+async def change_password(data: dict, user: User, session: AsyncSession) -> User:
     if user.hashed_password is None:
         raise auth_service.InvalidCredentialsError("Incorrect email or password")
-
-    verify_passwd(data["current_password"], user.hashed_password)
-    """ОБработать исключение"""
+    try:
+        verify_passwd(data["current_password"], user.hashed_password)
+    except VerifyMismatchError:
+        raise auth_service.InvalidCredentialsError("Incorrect password")
     new_hash_passwd = hash_passwd(data["new_password"])
-    # stmt = update(User).where(User.id == user.id).values(...)
+    stmt = (
+        update(User)
+        .where(User.id == user.id)
+        .values(hashed_password=new_hash_passwd, version=User.version + 1)
+        .returning(User)
+    )
+    user = (await session.execute(stmt)).scalars().one()
+    await session.commit()
+    return user
+
+
+async def is_user_token_version_valid(
+    user_id: int, version: int, session: AsyncSession
+) -> bool:
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalars().one()
+    return True if version == user.version else False

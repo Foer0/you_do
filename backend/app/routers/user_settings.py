@@ -1,18 +1,25 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Response, status
 from sqlalchemy import inspect
+from sqlalchemy.exc import NoResultFound
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.constants import SOUNDS
 from app.core.dependencies import get_current_user, get_db
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    set_refresh_cookie,
+)
 from app.models.user import User
 from app.schemas.user_setting import (
+    PasswordResponse,
     PasswordUpdate,
     SettingResponse,
     SettingUpdate,
 )
-from app.services import user_service
+from app.services import auth_service, user_service
 
 router = APIRouter(tags=["settings"])
 
@@ -60,14 +67,30 @@ def get_available_sounds() -> list[dict]:
     return SOUNDS
 
 
-@router.patch("/users/me/settings/password")
+@router.patch("/users/me/settings/password", response_model=PasswordResponse)
 async def update_password(
     data_in: PasswordUpdate,
     db: Annotated[AsyncSession, Depends(get_db)],
     user: Annotated[User, Depends(get_current_user)],
+    response: Response,
 ):
-    # todo: реализовать после реализации refresh-токена
+    user_data = data_in.model_dump()
+    try:
+        usr = await user_service.change_password(user_data, user, db)
+    except auth_service.InvalidCredentialsError:
+        raise HTTPException(status.HTTP_400_BAD_REQUEST, "Incorrect password")
+    except NoResultFound:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            "Something went wrong, try again later",
+        )
 
-    # user_data = data_in.model_dump()
-    # await user_service.change_password(user_data, user, db)
-    raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "Ещё не реализовано")
+    new_access = create_access_token(usr.id)
+    new_refresh = create_refresh_token(usr.id, usr.version)
+
+    set_refresh_cookie(response, new_refresh)
+
+    return {
+        "msg": "The password has been changed successfully",
+        "token": {"access_token": new_access, "token_type": "bearer"},
+    }
