@@ -37,7 +37,6 @@ class SettingResponse(BaseModel):
     sound_duration_secs: int | None
 
     @computed_field
-    @property
     def sound_url(self) -> str | None:
         if self.sound_effect is None:
             return None
