@@ -3,10 +3,11 @@ from typing import Annotated
 import jwt
 from fastapi import APIRouter, Cookie, Depends, HTTPException, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.status import HTTP_401_UNAUTHORIZED, HTTP_409_CONFLICT
 
 from app.core import redis_client, security
 from app.core.dependencies import get_db
-from app.schemas.user import Token, UserLogin, UserRegister
+from app.schemas.user import GoogleAuthRequest, Token, UserLogin, UserRegister
 from app.services import auth_service
 
 router = APIRouter(tags=["auth"])
@@ -29,6 +30,30 @@ async def register(
         )
     access_token = security.create_access_token(user.id)
     refresh_token = security.create_refresh_token(user.id, user.version)
+    security.set_refresh_cookie(response, refresh_token)
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@router.post("/auth/google", response_model=Token)
+async def register_through_google(
+    credentials: GoogleAuthRequest,
+    db: Annotated[AsyncSession, Depends(get_db)],
+    response: Response,
+):
+    try:
+        user_obj = await auth_service.authenticate_google_user(
+            credentials.id_token, credentials.timezone, db
+        )
+    except ValueError:
+        raise HTTPException(HTTP_401_UNAUTHORIZED, "Invalid google token")
+    except auth_service.GoogleAccountConflictError:
+        raise HTTPException(
+            HTTP_409_CONFLICT, "The user is already registered using a password"
+        )
+
+    access_token = security.create_access_token(user_obj.id)
+    refresh_token = security.create_refresh_token(user_obj.id, user_obj.version)
+
     security.set_refresh_cookie(response, refresh_token)
     return {"access_token": access_token, "token_type": "bearer"}
 

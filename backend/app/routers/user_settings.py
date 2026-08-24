@@ -34,7 +34,9 @@ async def get_session_settings(
         col.key: getattr(settings, col.key)
         for col in inspect(settings).mapper.column_attrs
     }
-    return SettingResponse(**settings_dict, email=user.email)
+    return SettingResponse(
+        **settings_dict, email=user.email, has_password=not user.is_another_auth
+    )
 
 
 @router.patch("/users/me/settings", response_model=SettingResponse)
@@ -59,7 +61,9 @@ async def update_base_settings(
         col.key: getattr(updated_settings, col.key)
         for col in inspect(updated_settings).mapper.column_attrs
     }
-    return SettingResponse(**settings_dict, email=user.email)
+    return SettingResponse(
+        **settings_dict, email=user.email, has_password=not user.is_another_auth
+    )
 
 
 @router.get("/users/me/settings/sounds")

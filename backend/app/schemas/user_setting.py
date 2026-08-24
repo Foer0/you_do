@@ -27,6 +27,7 @@ class SettingResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     email: EmailStr
+    has_password: bool
     birth_date: date | None
     session_secs: int
     break_secs: int

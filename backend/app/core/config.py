@@ -23,5 +23,7 @@ class Settings(BaseSettings):
     redis_port: int = Field(default=...)
     redis_db: int = Field(default=...)
 
+    google_client_id: str = Field(default=...)
+
 
 settings = Settings()
