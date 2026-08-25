@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pydantic import Field
+from pydantic import Field, computed_field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ENV_FILE_PATH = Path(__file__).resolve().parent.parent.parent / ".env"
@@ -14,7 +14,6 @@ class Settings(BaseSettings):
     db_host: str = Field(default=...)
     db_port: int = Field(default=...)
     db_name: str = Field(default=...)
-    database_url: str = Field(default=...)
 
     secret_key: str = Field(default=...)
     refresh_secret_key: str = Field(default=...)
@@ -24,6 +23,10 @@ class Settings(BaseSettings):
     redis_db: int = Field(default=...)
 
     google_client_id: str = Field(default=...)
+
+    @computed_field
+    def database_url(self) -> str:
+        return f"postgresql+asyncpg://{self.db_user}:{self.db_passwd}@{self.db_host}:{self.db_port}/{self.db_name}"
 
 
 settings = Settings()
