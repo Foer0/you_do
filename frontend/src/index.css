@@ -1,0 +1,72 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Fragment+Mono&display=swap");
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Poppins", system-ui, sans-serif;
+  --font-mono: "Fragment Mono", ui-monospace, monospace;
+
+  /* Warm Autumn UI — по референсу: светлый фон → тёмный текст →
+     оливковый UI → янтарные акценты → терракотовый Break.
+     Пять базовых цветов ниже — ровно те, что даны; ступени вокруг
+     них (400/600, cream-200/300) — интерполяция для контраста
+     бордеров/hover, самих anchor-значений не трогаю. */
+  --color-cream-50: #f4f0e8;   /* Фон */
+  --color-cream-100: #e5ded2;  /* Sidebar */
+  --color-cream-200: #cdbfa4;
+  --color-cream-300: #b09b78;
+
+  --color-ink: #29241f;        /* Текст */
+  --color-ink-soft: #49372c;   /* Коричневый — вторичный текст/иконки */
+
+  /* Оливковый — основной интерактивный акцент (Start, активный пункт
+     навигации, чекбоксы). */
+  --color-sage-400: #8e9c78;
+  --color-sage-500: #687957;
+  --color-sage-600: #4f5c40;
+
+  /* Терракотовый — акцент именно под Break (и логотип "Do"),
+     отдельно от общей оливковой UI-палитры. */
+  --color-clay-400: #c06a52;
+  --color-clay-500: #a83b29;
+  --color-clay-600: #7e2b1d;
+
+  /* Янтарный — точечные акценты, не основной UI-цвет: кнопка
+     добавления задачи выделена им же, чтобы "+" читался как акцент,
+     а не сливался с обычными оливковыми элементами интерфейса. */
+  --color-amber-400: #e8ab5c;
+  --color-amber-500: #d89032;
+  --color-amber-600: #b8741f;
+
+  --color-danger-500: #b8493f;
+  --color-danger-600: #96362e;
+
+  --color-screen: #b7b6a9;
+
+  /* Шкала статистики — "осенний лист": от песочного через приглушённый
+     шалфей (heat-200/300 — те же оттенки, что и sage-* в остальном
+     интерфейсе) к терракоте (heat-600 = clay-500, как кнопка Break).
+     Раньше шкала шла через отдельную жёлто-оранжевую "помидорную"
+     линейку (amber), которая не была больше нигде на сайте и спорила
+     с тёплым нейтральным фоном самих карточек — теперь оба конца
+     шкалы буквально совпадают с уже знакомыми акцентами интерфейса. */
+  --color-heat-100: #e4e8d6;
+  --color-heat-200: #b7bb8f;
+  --color-heat-300: #8e9c78;
+  --color-heat-400: #b6835a;
+  --color-heat-600: #a83b29;
+
+  --color-wall: #f4f0e8;
+  --color-table: #ded3c0;
+}
+
+body {
+  margin: 0;
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  background: var(--color-wall);
+  min-height: 100svh;
+}
+
+#root {
+  min-height: 100svh;
+}
